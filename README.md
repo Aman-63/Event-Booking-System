@@ -43,3 +43,4 @@ Composition	The BookingSystem is composed of Event and User objects to manage th
 7. Conclusion
 This project demonstrates the real-world application of Object-Oriented Programming by evolving a standard booking logic into a functional web-based system. By prioritizing modular design and clear class hierarchies, the system provides a scalable foundation for future enhancements like database integration and secure authentication.
 “This project focuses on applying OOP principles to bridge the gap between core C++ logic and modern web-based interfaces, demonstrating a modular approach to real-world system design.”
+## updated by shreya markam
