@@ -1,4 +1,4 @@
- :root {
+:root {
      --bg: #0d0f14;
      --surface: #161a22;
      --surface2: #1d2230;
@@ -768,3 +768,172 @@
      color: var(--text-faint);
  }
 
+
+/* ═══════════════════════════════════════════
+   SEAT MAP ADDITIONS
+═══════════════════════════════════════════ */
+:root {
+  --purple: #a78bfa;
+  --purple-dim: rgba(167,139,250,0.12);
+  --purple-border: rgba(167,139,250,0.3);
+  --green-dim: rgba(52,211,153,0.12);
+  --green-border: rgba(52,211,153,0.3);
+}
+
+/* Wide modal */
+.modal-wide {
+  max-width: 900px;
+  width: 96vw;
+}
+
+/* Screen bar */
+.screen-bar {
+  background: linear-gradient(180deg, rgba(59,130,246,0.3) 0%, rgba(59,130,246,0.05) 100%);
+  border: 1px solid var(--blue-border);
+  border-radius: var(--radius-sm);
+  text-align: center;
+  padding: 10px;
+  font-size: 12px; font-weight: 700; letter-spacing: 0.15em;
+  color: var(--blue); margin-bottom: 16px;
+  text-transform: uppercase;
+  box-shadow: 0 0 24px rgba(59,130,246,0.12);
+}
+
+/* Column labels */
+.col-labels {
+  display: grid;
+  grid-template-columns: 24px 5px repeat(5,30px) 20px repeat(7,30px);
+  gap: 4px;
+  margin-bottom: 6px;
+}
+.col-lbl {
+  text-align: center;
+  font-size: 10px; color: var(--text-faint);
+  font-family: 'DM Mono', monospace; font-weight: 500;
+}
+
+/* Seat rows */
+.seat-row {
+  display: grid;
+  grid-template-columns: 24px 5px repeat(5,30px) 20px repeat(7,30px);
+  gap: 4px;
+  margin-bottom: 5px;
+  align-items: center;
+}
+.row-lbl {
+  font-size: 11px; color: var(--text-faint);
+  font-family: 'DM Mono', monospace; font-weight: 600;
+  text-align: center;
+}
+.section-gap { height: 12px; }
+
+/* Individual seat — larger */
+.seat {
+  width: 30px; height: 27px;
+  border-radius: 5px 5px 3px 3px;
+  cursor: pointer;
+  border: 1px solid rgba(255,255,255,0.07);
+  background: var(--surface3);
+  transition: all 0.15s;
+  position: relative;
+}
+.seat::after {
+  content: '';
+  position: absolute; bottom: -4px; left: 5px; right: 5px;
+  height: 4px; border-radius: 0 0 3px 3px;
+  background: rgba(0,0,0,0.4);
+}
+.seat:hover:not(.reserved):not(.selected) {
+  background: var(--surface2);
+  border-color: var(--amber-border);
+  transform: translateY(-2px);
+}
+.seat.selected {
+  background: var(--green);
+  border-color: var(--green);
+  box-shadow: 0 0 10px rgba(52,211,153,0.45);
+}
+.seat.reserved {
+  background: var(--red-dim);
+  border-color: var(--red-border);
+  cursor: not-allowed;
+}
+.seat.reserved::before {
+  content: '';
+  position: absolute; inset: 4px;
+  background: var(--red);
+  border-radius: 3px; opacity: 0.55;
+}
+.seat.selecting-mode:not(.reserved):not(.selected) { cursor: pointer; }
+.seat.selecting-mode:not(.reserved):not(.selected):hover {
+  border-color: var(--green-border);
+  background: var(--green-dim);
+}
+
+/* Legend */
+.seat-legend {
+  flex-shrink: 0;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.1rem;
+  min-width: 140px;
+}
+.legend-title {
+  font-size: 10px; font-weight: 700; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 12px;
+}
+.legend-item {
+  display: flex; align-items: center; gap: 9px;
+  margin-bottom: 10px; font-size: 12px; color: var(--text-muted);
+}
+.legend-swatch {
+  width: 26px; height: 24px;
+  border-radius: 5px 5px 3px 3px; flex-shrink: 0;
+}
+.legend-swatch.empty    { background: var(--surface3); border: 1px solid rgba(255,255,255,0.07); }
+.legend-swatch.selected { background: var(--green); }
+.legend-swatch.reserved { background: var(--red-dim); border: 1px solid var(--red-border); }
+
+/* Concert zone map */
+.stage-block {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  text-align: center; padding: 14px;
+  font-size: 12px; font-weight: 700; letter-spacing: 0.15em;
+  color: var(--text-faint); text-transform: uppercase; position: relative;
+}
+.stage-block::after {
+  content: ''; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
+  width: 0; height: 0;
+  border-left: 11px solid transparent; border-right: 11px solid transparent;
+  border-top: 8px solid var(--surface2); z-index: 1;
+}
+.fan-row {
+  display: grid; grid-template-columns: 1fr 75px 1fr;
+  gap: 6px; margin-top: 14px;
+}
+.zone-block {
+  border-radius: var(--radius-sm); padding: 16px 12px;
+  text-align: center; cursor: pointer;
+  transition: all 0.2s; border: 2px solid transparent; user-select: none;
+}
+.zone-block:hover         { transform: scale(1.02); }
+.zone-block.selected-zone { transform: scale(1.02); }
+.zone-name  { font-size: 13px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 3px; }
+.zone-type  { font-size: 10px; font-weight: 600; letter-spacing: 0.1em;  text-transform: uppercase; opacity: 0.7; }
+.zone-avail { font-size: 10px; margin-top: 6px; opacity: 0.8; font-family: 'DM Mono', monospace; }
+
+.zone-fan    { background: rgba(52,211,153,0.08);  border-color: rgba(52,211,153,0.2); }
+.zone-fan:hover,    .zone-fan.selected-zone    { background: rgba(52,211,153,0.18);  border-color: var(--green);  box-shadow: 0 0 16px rgba(52,211,153,0.2); }
+.zone-fan .zone-name { color: var(--green); }
+.zone-vip    { background: rgba(240,160,0,0.1);    border-color: rgba(240,160,0,0.2); }
+.zone-vip:hover,    .zone-vip.selected-zone    { background: rgba(240,160,0,0.2);    border-color: var(--amber);  box-shadow: 0 0 16px rgba(240,160,0,0.2); }
+.zone-vip .zone-name { color: var(--amber); }
+.zone-gold   { background: rgba(59,130,246,0.08);  border-color: rgba(59,130,246,0.2);  margin-top: 6px; }
+.zone-gold:hover,   .zone-gold.selected-zone   { background: rgba(59,130,246,0.18);  border-color: var(--blue);   box-shadow: 0 0 16px rgba(59,130,246,0.15); }
+.zone-gold .zone-name { color: var(--blue); }
+.zone-silver { background: rgba(167,139,250,0.08); border-color: rgba(167,139,250,0.2); margin-top: 6px; }
+.zone-silver:hover, .zone-silver.selected-zone { background: rgba(167,139,250,0.18); border-color: var(--purple); box-shadow: 0 0 16px rgba(167,139,250,0.15); }
+.zone-silver .zone-name { color: var(--purple); }

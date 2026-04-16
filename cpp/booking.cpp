@@ -5,7 +5,6 @@
 #include <sstream>
 using namespace std;
 
-// ================= EVENT =================
 class Event
 {
 public:
@@ -25,7 +24,6 @@ public:
     }
 };
 
-// ================= BOOKING SYSTEM =================
 class BookingSystem
 {
     vector<Event> events;
@@ -199,7 +197,6 @@ public:
     }
 };
 
-// ================= MAIN =================
 int main(int argc, char *argv[])
 {
 

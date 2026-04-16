@@ -6,7 +6,6 @@
 <title>TicketFlow — Event Ticket Booking System</title>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="style.css">
-
 </head>
 <body>
 <div class="shell">
@@ -24,32 +23,24 @@
     </div>
     <nav class="nav">
       <button class="nav-btn active" onclick="switchTab('events')">Events</button>
-      <button class="nav-btn" id="history-tab-btn" onclick="switchTab('history')">History <span class="badge-count" id="history-cnt" style="display:none">0</span></button>
+      <button class="nav-btn" id="history-tab-btn" onclick="switchTab('history')">
+        History <span class="badge-count" id="history-cnt" style="display:none">0</span>
+      </button>
       <button class="nav-btn" onclick="openAddEvent()">Add Event</button>
     </nav>
   </header>
 
   <!-- STATS -->
   <div class="stats-row">
-    <div class="stat-card">
-      <div class="stat-label">Total bookings</div>
-      <div class="stat-val amber" id="stat-bookings">0</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Seats booked</div>
-      <div class="stat-val" id="stat-seats">0</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Revenue (₹)</div>
-      <div class="stat-val" id="stat-revenue">0</div>
-    </div>
+    <div class="stat-card"><div class="stat-label">Total bookings</div><div class="stat-val amber" id="stat-bookings">0</div></div>
+    <div class="stat-card"><div class="stat-label">Seats booked</div><div class="stat-val" id="stat-seats">0</div></div>
+    <div class="stat-card"><div class="stat-label">Revenue (₹)</div><div class="stat-val" id="stat-revenue">0</div></div>
   </div>
 
   <!-- EVENTS -->
   <div class="events-wrap" id="events-wrap">
     <div class="section-hd">
       <div class="section-title">Available events</div>
-      <div style="font-size:12px;color:var(--text-faint);">BookingSystem · 2 events loaded</div>
     </div>
     <div class="events-grid" id="events-grid"></div>
   </div>
@@ -58,54 +49,164 @@
   <div class="history-wrap" id="history-wrap">
     <div class="section-hd">
       <div class="section-title">Booking history</div>
-      <button class="btn btn-secondary" style="flex:none;padding:7px 14px;font-size:12px;" onclick="clearHistory()">Clear all</button>
+      <button class="btn btn-secondary" style="flex:none;padding:7px 14px;font-size:12px;" onclick="clearHistory()">Clear display</button>
     </div>
     <div id="history-list"></div>
   </div>
 
-  <!-- CONSOLE -->
-  <div class="console-section">
-    <div class="section-hd" style="margin-bottom:0.75rem;">
-      <div class="section-title">System console</div>
-      <span style="font-size:11px;color:var(--text-faint);font-family:'DM Mono',monospace;">mutex · multithreading · exceptions</span>
-    </div>
-    <div class="console-box" id="console-box">
-      <div class="log-line system">// BookingSystem initialised · 2 events · 2 event types (ConcertEvent, MovieEvent)</div>
-    </div>
-  </div>
-
 </div>
 
-<!-- BOOK MODAL -->
+<!-- ═══════════════════════════════════════════
+     BOOK MODAL  (wide — contains seat map)
+════════════════════════════════════════════ -->
 <div class="overlay" id="book-overlay">
-  <div class="modal">
+  <div class="modal modal-wide">
+
     <div class="modal-hd">
       <div>
         <div id="m-badge" class="etype-badge"></div>
         <div class="modal-title" id="m-name"></div>
-        <div class="modal-sub" id="m-meta"></div>
+        <div class="modal-sub"   id="m-meta"></div>
       </div>
       <button class="close-btn" onclick="closeModals()">✕</button>
     </div>
+
+    <!-- Name input -->
     <div class="form-grp">
       <label class="form-lbl">Your name</label>
-      <input class="form-input" type="text" id="inp-name" placeholder="e.g. User1, User2 …" />
+      <input class="form-input" type="text" id="inp-name" placeholder="e.g. Rahul, Priya …" />
     </div>
-    <div class="form-grp">
-      <label class="form-lbl">Number of seats</label>
-      <div class="seat-ctrl">
-        <button class="seat-adj" onclick="adjSeats(-1)">−</button>
-        <div class="seat-num" id="seat-disp">1</div>
-        <button class="seat-adj" onclick="adjSeats(1)">+</button>
-        <span class="avail-tag" id="avail-tag"></span>
+
+    <!-- ══════ CINEMA SEAT MAP ══════ -->
+    <div id="cinema-map-section">
+
+      <div class="form-grp" style="display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;">
+        <div>
+          <label class="form-lbl">Number of seats</label>
+          <input class="form-input" type="number" id="c-seat-count-modal" min="1" max="20" value="1" style="width:90px;" />
+        </div>
+        <button class="modal-action concert" style="flex:none;padding:10px 20px;font-size:13px;" onclick="startSelecting()">
+          Start Selecting
+        </button>
       </div>
-    </div>
-    <div class="price-box">
-      <div class="price-line"><span>Price per seat</span><span id="m-unit-price"></span></div>
-      <div class="price-line"><span>Seats</span><span id="m-seat-count"></span></div>
-      <div class="price-total"><span>Total</span><span id="m-total"></span></div>
-    </div>
-    <button class="modal-action" id="m-confirm-btn" onclick="confirmBook()">Confirm Booking</button>
+
+      <!-- Hint -->
+      <div id="cinema-hint-bar" style="display:none;background:var(--amber-dim);border:1px solid var(--amber-border);
+           border-radius:var(--radius-sm);padding:9px 14px;font-size:12px;color:var(--amber);
+           font-weight:600;margin-bottom:1rem;">
+        <span id="cinema-hint-modal"></span>
+      </div>
+
+      <!-- Grid + legend -->
+      <div style="display:flex;gap:1.5rem;align-items:flex-start;overflow-x:auto;padding-bottom:4px;">
+
+        <div style="flex:1;min-width:0;">
+          <div class="screen-bar">⬛ &nbsp; S C R E E N</div>
+          <div id="seat-grid"></div>
+
+          <!-- Selected info -->
+          <div id="confirm-row" style="display:none;margin-top:1rem;gap:12px;align-items:center;flex-wrap:wrap;">
+            <div style="font-size:12px;color:var(--text-muted);font-family:'DM Mono',monospace;">
+              Selected: <span style="color:var(--green);font-weight:600;" id="selected-tag">—</span>
+            </div>
+            <button class="modal-action concert" style="padding:8px 16px;font-size:12px;" onclick="resetCinemaMap();loadEvents().then(()=>{const ev=events.find(e=>e.id==activeEvtId);if(ev)openBook(ev.id);})">
+              Reset
+            </button>
+          </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="seat-legend">
+          <div class="legend-title">Legend</div>
+          <div class="legend-item"><div class="legend-swatch selected"></div><span>Selected</span></div>
+          <div class="legend-item"><div class="legend-swatch reserved"></div><span>Booked</span></div>
+          <div class="legend-item"><div class="legend-swatch empty"></div><span>Available</span></div>
+          <div style="height:1px;background:var(--border);margin:12px 0;"></div>
+          <div id="legend-stats" style="font-size:11px;color:var(--text-faint);line-height:2;font-family:'DM Mono',monospace;"></div>
+        </div>
+
+      </div>
+    </div><!-- /cinema-map-section -->
+
+    <!-- ══════ CONCERT ZONE MAP ══════ -->
+    <div id="concert-map-section" style="display:none;">
+      <div style="display:flex;gap:1.5rem;align-items:flex-start;flex-wrap:wrap;">
+
+        <!-- Venue map -->
+        <div style="flex:1;min-width:240px;">
+          <div class="stage-block">🎭 &nbsp; S T A G E</div>
+          <div class="fan-row">
+            <div class="zone-block zone-fan"  onclick="selectZone('fan-left')"  id="zone-fan-left">
+              <div class="zone-name">Fan Zone</div><div class="zone-type">Standing</div>
+              <div class="zone-avail" id="avail-fan-left">150 / 150 left</div>
+            </div>
+            <div class="zone-block zone-vip"  onclick="selectZone('vip')"       id="zone-vip" style="display:flex;flex-direction:column;justify-content:center;">
+              <div class="zone-name">VIP</div><div class="zone-type">Seating</div>
+              <div class="zone-avail" id="avail-vip">100 / 100 left</div>
+            </div>
+            <div class="zone-block zone-fan"  onclick="selectZone('fan-right')" id="zone-fan-right">
+              <div class="zone-name">Fan Zone</div><div class="zone-type">Standing</div>
+              <div class="zone-avail" id="avail-fan-right">150 / 150 left</div>
+            </div>
+          </div>
+          <div class="zone-block zone-gold"   onclick="selectZone('gold')"   id="zone-gold">
+            <div class="zone-name">Gold Zone</div><div class="zone-type">Standing</div>
+            <div class="zone-avail" id="avail-gold">300 / 300 left</div>
+          </div>
+          <div class="zone-block zone-silver" onclick="selectZone('silver')" id="zone-silver">
+            <div class="zone-name">Silver Zone</div><div class="zone-type">Standing</div>
+            <div class="zone-avail" id="avail-silver">500 / 500 left</div>
+          </div>
+          <div style="font-size:11px;color:var(--text-faint);text-align:center;margin-top:10px;">← Click a zone to select</div>
+        </div>
+
+        <!-- Zone detail panel -->
+        <div style="flex-shrink:0;width:230px;">
+          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;">
+            <div id="zone-placeholder" style="text-align:center;color:var(--text-faint);padding:1.25rem 0;">
+              <div style="font-size:30px;margin-bottom:8px;">🗺️</div>
+              <div style="font-size:13px;">Select a zone on the map</div>
+            </div>
+            <div id="zone-details" style="display:none;">
+              <div style="font-size:15px;font-weight:700;margin-bottom:3px;" id="zi-name">—</div>
+              <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;" id="zi-type">—</div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:7px;">
+                <span style="color:var(--text-faint);font-size:10px;text-transform:uppercase;font-weight:600;">Price</span>
+                <span style="font-weight:600;font-family:'DM Mono',monospace;" id="zi-price">—</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:7px;">
+                <span style="color:var(--text-faint);font-size:10px;text-transform:uppercase;font-weight:600;">Capacity</span>
+                <span style="font-weight:600;font-family:'DM Mono',monospace;" id="zi-cap">—</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:7px;">
+                <span style="color:var(--text-faint);font-size:10px;text-transform:uppercase;font-weight:600;">Available</span>
+                <span style="font-weight:600;font-family:'DM Mono',monospace;" id="zi-avail">—</span>
+              </div>
+              <div style="height:4px;background:var(--surface3);border-radius:3px;overflow:hidden;margin-bottom:16px;">
+                <div id="zi-bar" style="height:100%;border-radius:3px;transition:width 0.4s;width:100%;background:var(--green);"></div>
+              </div>
+              <label class="form-lbl">Tickets</label>
+              <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;">
+                <button class="seat-adj" onclick="adjTickets(-1)">−</button>
+                <div class="seat-num" id="ticket-num">1</div>
+                <button class="seat-adj" onclick="adjTickets(1)">+</button>
+              </div>
+              <div class="price-box">
+                <div class="price-line"><span>Per ticket</span><span id="pr-unit">—</span></div>
+                <div class="price-line"><span>Tickets</span><span id="pr-count">1</span></div>
+                <div class="price-total"><span>Total</span><span id="pr-total">—</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div><!-- /concert-map-section -->
+
+    <button class="modal-action concert" id="m-confirm-btn" onclick="confirmBook()" style="margin-top:1.5rem;width:100%;">
+      Confirm Booking
+    </button>
+
   </div>
 </div>
 
@@ -116,13 +217,13 @@
       <div>
         <div id="cm-badge" class="etype-badge"></div>
         <div class="modal-title" id="cm-name"></div>
-        <div class="modal-sub" id="cm-meta"></div>
+        <div class="modal-sub"   id="cm-meta"></div>
       </div>
       <button class="close-btn" onclick="closeModals()">✕</button>
     </div>
     <div class="form-grp">
       <label class="form-lbl">Your name</label>
-      <input class="form-input" type="text" id="cinp-name" placeholder="Enter the name used during booking" />
+      <input class="form-input" type="text" id="cinp-name" placeholder="Name used during booking" />
     </div>
     <div class="form-grp">
       <label class="form-lbl">Seats to cancel</label>
@@ -140,44 +241,19 @@
 <div class="overlay" id="add-overlay">
   <div class="modal">
     <div class="modal-hd">
-      <div>
-        <div class="modal-title">Add New Event</div>
-        <div class="modal-sub">Create a new event</div>
-      </div>
+      <div><div class="modal-title">Add New Event</div><div class="modal-sub">Create a new event</div></div>
       <button class="close-btn" onclick="closeAddEvent()">✕</button>
     </div>
-
-    <div class="form-grp">
-      <label class="form-lbl">Event Name</label>
-      <input class="form-input" id="e-name" placeholder="Concert / Movie" />
-    </div>
-
-    <div class="form-grp">
-      <label class="form-lbl">Date</label>
-      <input class="form-input" id="e-date" placeholder="YYYY-MM-DD" />
-    </div>
-
-    <div class="form-grp">
-      <label class="form-lbl">Venue</label>
-      <input class="form-input" id="e-venue" placeholder="City Hall" />
-    </div>
-
-    <div class="form-grp">
-      <label class="form-lbl">Price</label>
-      <input class="form-input" id="e-price" type="number" />
-    </div>
-
-    <div class="form-grp">
-      <label class="form-lbl">Total Seats</label>
-      <input class="form-input" id="e-seats" type="number" />
-    </div>
-
-    <button class="modal-action" onclick="submitEvent()">Add Event</button>
+    <div class="form-grp"><label class="form-lbl">Event Name</label><input class="form-input" id="e-name" placeholder="Concert / Movie" /></div>
+    <div class="form-grp"><label class="form-lbl">Date</label><input class="form-input" id="e-date" placeholder="YYYY-MM-DD" /></div>
+    <div class="form-grp"><label class="form-lbl">Venue</label><input class="form-input" id="e-venue" placeholder="City Hall" /></div>
+    <div class="form-grp"><label class="form-lbl">Price</label><input class="form-input" id="e-price" type="number" /></div>
+    <div class="form-grp"><label class="form-lbl">Total Seats</label><input class="form-input" id="e-seats" type="number" /></div>
+    <button class="modal-action concert" onclick="submitEvent()">Add Event</button>
   </div>
 </div>
-<!-- TOAST -->
+
 <div class="toast" id="toast"></div>
 <script src="script.js"></script>
-
 </body>
 </html>
