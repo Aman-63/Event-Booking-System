@@ -56,7 +56,7 @@ public:
         : id(i), name(n), date(d), venue(v), price(p), seats(s) {}
 };
 
-//  STATS  (persisted in stats.txt)
+//  STATS  
 class Stats {
 public:
     int    totalBookings = 0;
