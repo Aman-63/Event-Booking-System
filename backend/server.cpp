@@ -1,29 +1,3 @@
-/*
- * ╔══════════════════════════════════════════════════════════╗
- * ║         TicketFlow — C++ HTTP Backend Server             ║
- * ║         OOP Project · NIT Silchar                        ║
- * ║                                                          ║
- * ║  Compile: g++ -o server server.cpp -lws2_32 (Windows)    ║
- * ║  Run    : .\server.exe  (from inside backend/ folder)    ║
- * ║  Open   : http://localhost:3000  (auto-launches)         ║
- * ╚══════════════════════════════════════════════════════════╝
- *
- *  Data files:
- *    data/events.txt   — pipe-delimited event records
- *    data/tickets.txt  — booking records  (delete to reset bookings)
- *    data/seatmap.txt  — per-event booked seat labels
- *    data/stats.txt    — persistent stats (bookings / seats / revenue)
- *
- *  API Routes:
- *    GET  /events
- *    GET  /history
- *    GET  /stats
- *    GET  /seatmap?eventId=N
- *    POST /book        { user, eventId, seats, seatLabels }
- *    POST /cancel      { user, eventId, seats }
- *    POST /addEvent    { name, date, venue, price, seats }
- */
-
 #ifdef _WIN32
     #define _WIN32_WINNT 0x0601
     #include <winsock2.h>
@@ -60,9 +34,7 @@ const string STATS_FILE   = "../data/stats.txt";
 const string FRONTEND_DIR = "../frontend/";
 const int    PORT         = 3000;
 
-// ═════════════════════════════════════════════
 //  HELPERS
-// ═════════════════════════════════════════════
 static bool fileExists(const string& path) {
     ifstream f(path);
     return f.good();
@@ -74,9 +46,7 @@ static bool fileEmpty(const string& path) {
     return f.peek() == ifstream::traits_type::eof();
 }
 
-// ═════════════════════════════════════════════
 //  DATA MODELS
-// ═════════════════════════════════════════════
 class Event {
 public:
     int id, seats, price;
@@ -86,9 +56,7 @@ public:
         : id(i), name(n), date(d), venue(v), price(p), seats(s) {}
 };
 
-// ═════════════════════════════════════════════
 //  STATS  (persisted in stats.txt)
-// ═════════════════════════════════════════════
 class Stats {
 public:
     int    totalBookings = 0;
@@ -132,12 +100,9 @@ public:
     }
 };
 
-// ═════════════════════════════════════════════
-//  SEAT MAP  (persisted in seatmap.txt)
-//  Format: eventId|A1,A2,B3,C5
-// ═════════════════════════════════════════════
+//  SEAT MAP  
 class SeatMap {
-    map<int, vector<string>> bookedSeats; // eventId → list of seat labels
+    map<int, vector<string>> bookedSeats; 
 
 public:
     void load() {
@@ -215,9 +180,7 @@ public:
     }
 };
 
-// ═════════════════════════════════════════════
 //  BOOKING SYSTEM
-// ═════════════════════════════════════════════
 class BookingSystem {
     vector<Event> events;
     Stats    stats;
@@ -279,7 +242,7 @@ public:
         syncWithTickets();
     }
 
-    // ── GET /events ──────────────────────────
+    // GET /events
     string getEventsJSON() {
         loadEvents();
         if (events.empty()) return "[]";
@@ -301,19 +264,19 @@ public:
         return out.str();
     }
 
-    // ── GET /stats ───────────────────────────
+    // GET /stats 
     string getStatsJSON() {
         syncWithTickets();
         return stats.toJSON();
     }
 
-    // ── GET /seatmap?eventId=N ───────────────
+    // GET /seatmap?eventId=N 
     string getSeatMapJSON(int eventId) {
         seatMap.load();
         return seatMap.getJSON(eventId);
     }
 
-    // ── POST /book ───────────────────────────
+    // POST /book
     // seatLabels: comma-separated string like "A1,A2,B3" or empty for concert zones
     string book(int eventId, const string& user, int seats, const string& seatLabels) {
         cout << "  [BOOK] eventId=" << eventId << " user=" << user
@@ -360,7 +323,7 @@ public:
         return "FAILED";
     }
 
-    // ── POST /cancel ─────────────────────────
+    // POST /cancel 
     string cancel(const string& user, int eventId, int seats) {
         syncWithTickets();
         loadEvents();
@@ -404,7 +367,7 @@ public:
         return "CANCELLED";
     }
 
-    // ── GET /history ─────────────────────────
+    // GET /history
     string getHistoryJSON() {
         syncWithTickets();
         loadEvents();
@@ -431,7 +394,7 @@ public:
         return out.str();
     }
 
-    // ── POST /addEvent ───────────────────────
+    // POST /addEvent 
     string addEvent(const string& name, const string& date,
                     const string& venue, int price, int seats) {
         loadEvents();
@@ -445,9 +408,7 @@ public:
     }
 };
 
-// ═════════════════════════════════════════════
 //  HTTP HELPERS
-// ═════════════════════════════════════════════
 string trim(const string& s) {
     size_t a = s.find_first_not_of(" \t\r\n");
     size_t b = s.find_last_not_of(" \t\r\n");
@@ -523,9 +484,8 @@ string htmlResp(const string& b){ return httpResponse(200,"text/html",b); }
 string cssResp (const string& b){ return httpResponse(200,"text/css",b); }
 string jsResp  (const string& b){ return httpResponse(200,"application/javascript",b); }
 
-// ═════════════════════════════════════════════
 //  REQUEST PARSER
-// ═════════════════════════════════════════════
+
 struct HttpRequest {
     string method, path, body;
     int contentLength = 0;
@@ -566,9 +526,8 @@ HttpRequest parseRequest(const string& raw) {
     return req;
 }
 
-// ═════════════════════════════════════════════
 //  REQUEST HANDLER
-// ═════════════════════════════════════════════
+
 BookingSystem bs;
 
 string handleRequest(const string& raw) {
@@ -584,7 +543,7 @@ string handleRequest(const string& raw) {
 
     if (req.method == "OPTIONS") return httpResponse(200,"text/plain","");
 
-    // ── Static files ─────────────────────────
+    //  Static files 
     if (req.method=="GET" && (routePath=="/" || routePath=="/index.html")) {
         string c = readFile(FRONTEND_DIR+"index.html");
         return c.empty() ? httpResponse(404,"text/plain","index.html not found") : htmlResp(c);
@@ -598,7 +557,7 @@ string handleRequest(const string& raw) {
         return c.empty() ? httpResponse(404,"text/plain","script.js not found") : jsResp(c);
     }
 
-    // ── API ──────────────────────────────────
+    // API
     if (req.method=="GET" && routePath=="/events")  return jsonResp(bs.getEventsJSON());
     if (req.method=="GET" && routePath=="/history") return jsonResp(bs.getHistoryJSON());
     if (req.method=="GET" && routePath=="/stats")   return jsonResp(bs.getStatsJSON());
@@ -644,9 +603,6 @@ string handleRequest(const string& raw) {
     return httpResponse(404,"text/plain","Not Found");
 }
 
-// ═════════════════════════════════════════════
-//  MAIN
-// ═════════════════════════════════════════════
 int main() {
 #ifdef _WIN32
     WSADATA wsa;
@@ -670,11 +626,7 @@ int main() {
     }
     listen(serverSock, 10);
 
-    cout << "\n╔══════════════════════════════════════════╗\n"
-         << "║   TicketFlow C++ Server  · port " << PORT << "    ║\n"
-         << "║   NIT Silchar · OOP Project              ║\n"
-         << "╚══════════════════════════════════════════╝\n\n"
-         << "  Events  : " << EVENTS_FILE  << "\n"
+    cout << "  Events  : " << EVENTS_FILE  << "\n"
          << "  Tickets : " << TICKETS_FILE << "\n"
          << "  SeatMap : " << SEATMAP_FILE << "\n"
          << "  Stats   : " << STATS_FILE   << "\n\n";
@@ -687,10 +639,6 @@ int main() {
 
 #ifdef _WIN32
     system("start http://localhost:3000");
-#elif __APPLE__
-    system("open http://localhost:3000");
-#else
-    system("xdg-open http://localhost:3000");
 #endif
 
     cout << "  Waiting for requests...\n\n";
