@@ -1,5 +1,5 @@
-1|Concert|2026-04-10|CityHall|500|50
-2|Movie|2026-04-12|Cinema|300|40
+1|Concert|2026-04-10|CityHall|500|48
+2|Movie|2026-04-12|Cinema|300|38
 3|Standup|2026-04-15|Auditorium|200|60
 4|TechTalk|2026-04-20|SeminarHall|100|77
 5|Utopia|2026-07-07|CityHall|5000|28
